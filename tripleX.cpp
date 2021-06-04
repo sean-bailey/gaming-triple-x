@@ -254,7 +254,7 @@ void helpPrompt(){
 
 int main()
 {   string SetLevel;
-    cout << "Please enter a level, 0, 1 or 2: ";
+    cout << "Please enter a level, 0, 1 or 2 (easy, Medium, or HARD): ";
     getline(std::cin,SetLevel);
     bool NotProperLevel=true;
     while (NotProperLevel)
