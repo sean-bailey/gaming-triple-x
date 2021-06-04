@@ -370,7 +370,9 @@ int main()
         }
         else{
             notcompleted=false;
-            cout << "You have run out of tries! GAME OVER!";
+            cout << "You have run out of tries! GAME OVER! \n";
+            cout << "The correct combination was: \n";
+            vectorPrint(ProblemSet);
         }
     }
 
