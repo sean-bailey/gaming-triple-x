@@ -9,6 +9,7 @@
 #include <sstream>
 #include <iterator>
 
+
 using namespace std;
 
 /*
@@ -252,8 +253,119 @@ void helpPrompt(){
     cout << "Based on difficulty, every few attempts will earn you another probe.\n";
 }
 
+int playGame(int NumTries, int NumHints, string AgentInput,int levelset,vector <int> ProblemSet,list<string> HintList){
+
+bool notcompleted = true;
+    int MatchingValues=0;
+    int NewProbeCounter=0;
+    while (notcompleted){
+        if (NumTries > 0)
+        {
+        cout << "Please enter either a guess or a command: ";
+        getline(std::cin,AgentInput);
+        if (AgentInput=="help"){
+            //do the help prompt
+            helpPrompt();
+        }
+        else if (AgentInput=="probe"){
+            //do the probe logic
+            if (NumHints > 0){
+                string ProbeHint=giveHint(ProblemSet,levelset);
+                HintList.push_back (ProbeHint);
+                cout << "Probe result: \n";
+                cout << ProbeHint + "\n";
+                --NumHints;
+                cout << "Probes remaining: "+to_string(NumHints)+"\n";
+
+            }
+            else{
+                cout << "You're out of probes! Review your hints with 'review'\n";
+            }
+        }
+        else if (AgentInput=="quit"){
+            notcompleted=false;
+            return 3;
+            //cout << "Thanks for playing. Goodbye!";
+        }
+        else if (AgentInput=="status"){
+            //do the status logic
+            cout << "You have: \n";
+            cout << to_string(NumTries)+" tries remaining, \n";
+            cout << to_string(NumHints)+" probes remaining, \n";
+            cout << "Matched "+to_string(MatchingValues)+" values in the combo. \n";
+        }
+        else if (AgentInput=="review"){
+            cout << "Here's the current hints you've gathered so far: \n";
+            listPrint(HintList);
+            //do the review logic
+        }
+        else{
+            
+            --NumTries;
+            ++NewProbeCounter;
+            if (((levelset+1)/NewProbeCounter)==1)
+            {
+                NewProbeCounter=0;
+                ++NumHints;
+            }
+            //assume this is a valid try and evaluate
+            istringstream buf(AgentInput);
+            istream_iterator<string> beg(buf), end;
+            vector<string> InputTokens(beg,end);
+            MatchingValues=compareVectors(ProblemSet,InputTokens);
+            if (MatchingValues==ProblemSet.size()){
+                notcompleted=false;
+                return 1;
+                //cout << "Correct! You have found the combination! ";
+            }
+            else{
+                cout << "You have "+to_string(MatchingValues)+" values correct, but not the full combination. \n";
+            }
+
+        
+    }
+        }
+        else{
+            notcompleted=false;
+            return 2;
+           // cout << "You have run out of tries! GAME OVER! \n";
+           // cout << "The correct combination was: \n";
+            //vectorPrint(ProblemSet);
+        }
+    }
+
+}
+
+bool PromptAgain(){
+    string PlayAgain;
+    cout << "\n Would you like to play again? (Y/N) ";
+    getline(std::cin,PlayAgain);
+    std::transform(PlayAgain.begin(), PlayAgain.end(),PlayAgain.begin(), ::toupper);
+    while (PlayAgain != "Y" && PlayAgain != "N"){
+        cout << "\n Please enter 'Y' or 'N' :";
+        getline(std::cin,PlayAgain);
+    }
+    if (PlayAgain=="Y"){
+        return true;
+    }
+    else
+    {
+        return false;
+    }
+}
+
 int main()
-{   string SetLevel;
+{   
+    //we do playgame function in a loop. If it returns 1, player wins, play 
+    //winning message.
+    //If it returns 2, play losing message. If either 1 or 2 are presented, provide a 
+    //replay prompt. 
+    // If 3 is returned, that's a quit, provide a goodbye with no replay prompt.
+
+    bool replay = true;
+    while (replay){
+        //this way you get the entire game experience on replay. Easy!
+        string SetLevel;
     cout << "Please enter a level, 0, 1 or 2 (easy, Medium, or HARD): ";
     getline(std::cin,SetLevel);
     bool NotProperLevel=true;
@@ -293,88 +405,25 @@ int main()
     std::cout << "This code will be a series of numbers separated by a space (' '). \n";
     std::cout << "For example: '8 12 5 124 3'  \n";
     cout << "You can also type 'probe' to scan for a hint, and 'help' for commands. \n";
-    //std::getline(std::cin,AgentInput);
-    //std::cout << "You entered: "+AgentInput + "\n";
-    //std::cout << "And the numbers are: ";
-    //vectorPrint(ProblemSet);
-    //So this is how you can get the agent input and then tokenize it out to the vector.
-    
-
-    bool notcompleted = true;
-    int MatchingValues=0;
-    int NewProbeCounter=0;
-    while (notcompleted){
-        if (NumTries > 0)
-        {
-        cout << "Please enter either a guess or a command: ";
-        getline(std::cin,AgentInput);
-        if (AgentInput=="help"){
-            //do the help prompt
-            helpPrompt();
+        int GameStatus=playGame(NumTries,NumHints,AgentInput,levelset,ProblemSet,HintList);
+        if (GameStatus==1){
+            cout << "You're In! You guessed the right combination.";
+            replay=PromptAgain();
         }
-        else if (AgentInput=="probe"){
-            //do the probe logic
-            if (NumHints > 0){
-                string ProbeHint=giveHint(ProblemSet,levelset);
-                HintList.push_back (ProbeHint);
-                cout << "Probe result: \n";
-                cout << ProbeHint + "\n";
-                --NumHints;
-                cout << "Probes remaining: "+to_string(NumHints)+"\n";
-
-            }
-            else{
-                cout << "You're out of probes! Review your hints with 'review'\n";
-            }
-        }
-        else if (AgentInput=="quit"){
-            notcompleted=false;
-            cout << "Thanks for playing. Goodbye!";
-        }
-        else if (AgentInput=="status"){
-            //do the status logic
-            cout << "You have: \n";
-            cout << to_string(NumTries)+" tries remaining, \n";
-            cout << to_string(NumHints)+" probes remaining, \n";
-            cout << "Matched "+to_string(MatchingValues)+" values in the combo. \n";
-        }
-        else if (AgentInput=="review"){
-            cout << "Here's the current hints you've gathered so far: \n";
-            listPrint(HintList);
-            //do the review logic
-        }
-        else{
-            
-            --NumTries;
-            ++NewProbeCounter;
-            if (((levelset+1)/NewProbeCounter)==1)
-            {
-                NewProbeCounter=0;
-                ++NumHints;
-            }
-            //assume this is a valid try and evaluate
-            istringstream buf(AgentInput);
-            istream_iterator<string> beg(buf), end;
-            vector<string> InputTokens(beg,end);
-            MatchingValues=compareVectors(ProblemSet,InputTokens);
-            if (MatchingValues==ProblemSet.size()){
-                notcompleted=false;
-                cout << "Correct! You have found the combination! ";
-            }
-            else{
-                cout << "You have "+to_string(MatchingValues)+" values correct, but not the full combination. \n";
-            }
-
-        
-    }
-        }
-        else{
-            notcompleted=false;
-            cout << "You have run out of tries! GAME OVER! \n";
-            cout << "The correct combination was: \n";
+        else if (GameStatus==2){
+             cout << "You have run out of tries! GAME OVER! \n";
+             cout << "The correct combination was: \n";
             vectorPrint(ProblemSet);
+            replay=PromptAgain();
+        }
+        else if (GameStatus==3){
+            
+            replay=false;
         }
     }
+    cout << "Thanks for playing. Goodbye!";
+
+    
 
 
     return 0;
